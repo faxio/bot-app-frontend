@@ -21,32 +21,96 @@ interface Interaction {
   message: string;
 }
 
+const initalState = {
+  command: "",
+  message: "",
+};
+
 function App() {
   const [interactions, setInteractions] = useState<Interaction[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [formInteraction, setFormInteraction] =
+    useState<Interaction>(initalState);
 
   useEffect(() => {
     fetch(`${url}/api/command`)
       .then((response) => response.json())
       .then(({ data }) => setInteractions(data));
-  }, []);
+  }, [interactions]);
+
+  const botEvent = (action: string) => {
+    fetch(`${url}/api/bot/${action}`)
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+  };
+
+  const onEventHandler = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormInteraction({ ...formInteraction, [e.target.name]: e.target.value });
+  };
+
+  const createInteraction = () => {
+    fetch(`${url}/api/command`, {
+      method: "POST",
+      body: JSON.stringify(formInteraction),
+      headers: { "Content-type": "application/json; charset=UTF-8" },
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json))
+      .catch((err) => console.log(err));
+    setInteractions([...interactions, formInteraction]);
+    setFormInteraction(initalState);
+  };
+
+  const searchInteraction = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInteractions(
+      interactions.filter((interaction) =>
+        interaction.command.includes(event.target.value)
+      )
+    );
+    console.log(interactions);
+  };
 
   return (
     <>
       {/* HEADER */}
       <Header>
         <Title>Bot APP</Title>
-        <button>Reiniciar</button>
-        <button>Iniciar</button>
-        <button>Parar</button>
+        <button onClick={() => botEvent("update")}>Reiniciar</button>
+        <button onClick={() => botEvent("start")}>Iniciar</button>
+        <button onClick={() => botEvent("stop")}>Parar</button>
       </Header>
 
       <article>
         {/* Search bar */}
 
-        <input placeholder="Search"></input>
+        <input
+          placeholder="Search"
+          onChange={(event) => searchInteraction(event)}
+        ></input>
 
         {/* Create interaction*/}
-        <button> Create Interaction</button>
+        <button onClick={() => setIsOpen(!isOpen)}> Create Interaction</button>
+        {isOpen && (
+          <div>
+            <input
+              placeholder="command"
+              name="command"
+              onChange={(event) => onEventHandler(event)}
+              value={formInteraction.command}
+            ></input>
+            <textarea
+              placeholder="message"
+              name="message"
+              onChange={(event) => onEventHandler(event)}
+              value={formInteraction.message}
+            ></textarea>
+            <button onClick={() => createInteraction()}>
+              Crear Interacción
+            </button>
+          </div>
+        )}
 
         {/* Interactions */}
         {interactions.map((interaction: Interaction, Index) => (
