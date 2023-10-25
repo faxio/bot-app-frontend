@@ -38,8 +38,28 @@ function App() {
       .then(({ data }) => setInteractions(data));
   }, [interactions]);
 
-  const botEvent = (action: string) => {
+  const botEventStop = (action: string) => {
     fetch(`${url}/api/bot/${action}`)
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+  };
+
+  const botEventStart = (action: string) => {
+    fetch(`${url}/api/bot/${action}`, {
+      method: "POST",
+      body: JSON.stringify({ interactions: interactions }),
+      headers: { "Content-type": "application/json; charset=UTF-8" },
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+  };
+
+  const botEventUpdate = (action: string) => {
+    fetch(`${url}/api/bot/${action}`, {
+      method: "POST",
+      body: JSON.stringify({ interactions: interactions }),
+      headers: { "Content-type": "application/json; charset=UTF-8" },
+    })
       .then((response) => response.json())
       .then((data) => console.log(data));
   };
@@ -72,14 +92,16 @@ function App() {
     console.log(interactions);
   };
 
+  if (interactions.length === 0) return <div> Cargando..</div>;
+
   return (
     <>
       {/* HEADER */}
       <Header>
         <Title>Bot APP</Title>
-        <button onClick={() => botEvent("update")}>Reiniciar</button>
-        <button onClick={() => botEvent("start")}>Iniciar</button>
-        <button onClick={() => botEvent("stop")}>Parar</button>
+        <button onClick={() => botEventUpdate("update")}>Reiniciar</button>
+        <button onClick={() => botEventStart("start")}>Iniciar</button>
+        <button onClick={() => botEventStop("stop")}>Parar</button>
       </Header>
 
       <article>
